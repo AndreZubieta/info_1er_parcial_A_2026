@@ -142,8 +142,19 @@ class YellowBird(Bird):
     ### ---------------------- ###
     ### SU IMPLEMENTACION AQUI ###
     ### ---------------------- ###
-    pass
 
+    def __init__(self, impulse_vector: ImpulseVector, x: float, y: float, space: pymunk.Space):
+        super().__init__("assets/img/yellow.png", impulse_vector, x, y, space)
+        self.boosted = False
+
+    def boost(self, power_multiplier=2):
+        if not self.boosted:
+            velocity = self.body.velocity
+            speed = velocity.length
+            if speed > 0:
+                boost_impulse = velocity.normalized() * speed * (power_multiplier - 1)
+                self.body.apply_impulse_at_local_point(boost_impulse)
+                self.boosted = True    
 
 class BlueBird(Bird):
     """
