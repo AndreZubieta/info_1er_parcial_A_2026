@@ -13,10 +13,14 @@ logging.getLogger("PIL").setLevel(logging.WARNING)
 
 logger = logging.getLogger("main")
 
-WIDTH = 1800
-HEIGHT = 800
+# WIDTH = 1800
+# HEIGHT = 800
+WIDTH = 1200
+HEIGHT = 600
+
 TITLE = "Angry birds"
 GRAVITY = -900
+
 
 
 class App(arcade.View):
