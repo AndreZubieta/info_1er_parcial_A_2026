@@ -46,6 +46,8 @@ class Bird(arcade.Sprite):
         self.body = body
         self.shape = shape
 
+        self.ability_used = False # To have a better track of used abilities on all birds
+
     def update(self, delta_time):
         """
         Update the position of the bird sprite based on the physics body position
@@ -59,7 +61,7 @@ class Bird(arcade.Sprite):
         Base bird has no ability.
         Subclasses override this.
         """
-        pass
+        self.ability_used = True
 
 
 class Pig(arcade.Sprite):
@@ -154,18 +156,17 @@ class YellowBird(Bird):
 
     def __init__(self, impulse_vector: ImpulseVector, x: float, y: float, space: pymunk.Space):
         super().__init__(impulse_vector, x, y, space)
-        self.boosted = False
 
     def activate_ability(self, power_multiplier=2):
-        if self.boosted:
+        if self.ability_used:
             return
-        if not self.boosted:
+        if not self.ability_used:
             velocity = self.body.velocity
             speed = velocity.length
             if speed > 0:
                 boost_impulse = velocity.normalized() * speed * (power_multiplier - 1)
                 self.body.apply_impulse_at_local_point(boost_impulse)
-                self.boosted = True    
+                self.ability_used = True    
 
 class BlueBird(Bird):
     """
@@ -191,22 +192,22 @@ class BlueBird(Bird):
     IMAGE = "assets/img/blue.png"
 
     def __init__(self, impulse_vector: ImpulseVector, x: float, y: float, space: pymunk.Space):
-        super().__init__("assets/img/blue.png", impulse_vector, x, y, space)
-        self.divided = False
+        super().__init__(impulse_vector, x, y, space)
     
-    def divide(self):
-        if not self.divided:
+    def activate_ability(self):
+        if not self.ability_used:
             velocity = self.body.velocity
             speed = velocity.length
             if speed > 0:
                 angle = math.atan2(velocity.y, velocity.x)
-                angles = [angle, angle + math.radians(30), angle - math.radians(30)]
+                angles = [angle + math.radians(30), angle - math.radians(30)]
                 new_birds = []
                 for a in angles:
                     impulse_vector = ImpulseVector(angle=a, impulse=speed)
                     new_bird = BlueBird(impulse_vector, self.center_x, self.center_y, self.body.space)
+                    new_bird.ability_used = True  # Mark the new birds as having used their ability to prevent infinite splitting
                     new_birds.append(new_bird)
-                self.divided = True
+                self.ability_used = True #Original middle bird also marked as used
                 return new_birds
         return []
     pass
