@@ -48,6 +48,8 @@ class App(arcade.View):
         self.distance = 0
         self.draw_line = False
 
+        self.active_bird = None # To track the active bird for ability activation
+
         # agregar un collision handler
         self.handler = self.space.add_default_collision_handler()
         self.handler.post_solve = self.collision_handler
@@ -81,25 +83,82 @@ class App(arcade.View):
         self.sprites.update(delta_time)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        if button == arcade.MOUSE_BUTTON_LEFT:
-            self.start_point = Point2D(x, y)
-            self.end_point = Point2D(x, y)
-            self.draw_line = True
-            logger.debug(f"Start Point: {self.start_point}")
 
+        if button != arcade.MOUSE_BUTTON_LEFT:
+            return
+
+        # start a new drag session
+        self.start_point = Point2D(x, y)
+        self.end_point = Point2D(x, y)
+
+        self.draw_line = True
+
+        logger.debug(f"Start Point: {self.start_point}")
+        
     def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int):
-        if buttons == arcade.MOUSE_BUTTON_LEFT:
-            self.end_point = Point2D(x, y)
-            logger.debug(f"Dragging to: {self.end_point}")
 
-    def on_mouse_release(self, x: int, y: int, button: int, modifiers: int):
-        if button == arcade.MOUSE_BUTTON_LEFT:
-            logger.debug(f"Releasing from: {self.end_point}")
-            self.draw_line = False
-            impulse_vector = get_impulse_vector(self.start_point, self.end_point)
-            bird = Bird("assets/img/red-bird3.png", impulse_vector, x, y, self.space)
-            self.sprites.append(bird)
-            self.birds.append(bird)
+        if buttons != arcade.MOUSE_BUTTON_LEFT:
+            return
+
+        self.end_point = Point2D(x, y)
+
+        self.draw_line = True
+
+        logger.debug(f"Dragging to: {self.end_point}")
+        
+    def on_mouse_release(self, x: int, y: int, button, modifiers):
+
+        if button != arcade.MOUSE_BUTTON_LEFT:
+            return
+
+        self.draw_line = False
+
+        logger.debug(f"Releasing from: {self.end_point}")
+
+        # ---------------------------------
+        # CHECK IF IT WAS A "CLICK" (ABILITY)
+        # ---------------------------------
+
+        distance = get_distance(
+            self.start_point,
+            self.end_point
+        )
+
+        if (
+            self.active_bird
+            and not self.active_bird.ability_used
+            and distance < 10
+        ):
+
+            result = self.active_bird.activate_ability()
+
+            if result:
+                for bird in result:
+                    self.sprites.append(bird)
+                    self.birds.append(bird)
+
+            return
+
+        # ---------------------------------
+        # NORMAL LAUNCH (DRAG RELEASE)
+        # ---------------------------------
+
+        impulse_vector = get_impulse_vector(
+            self.start_point,
+            self.end_point
+        )
+
+        bird = Bird(
+            impulse_vector,
+            self.start_point.x,   # IMPORTANT FIX
+            self.start_point.y,
+            self.space,
+        )
+
+        self.sprites.append(bird)
+        self.birds.append(bird)
+
+        self.active_bird = bird
 
     def on_draw(self):
         self.clear()
