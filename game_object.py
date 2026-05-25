@@ -5,13 +5,14 @@ from game_logic import ImpulseVector
 
 
 class Bird(arcade.Sprite):
+
+    IMAGE = "assets/img/red-bird3.png"
     """
-    Bird class. This represents an angry bird. All the physics is handled by Pymunk,
+    Base Bird class. This represents an angry bird. All the physics is handled by Pymunk,
     the init method only set some initial properties
     """
     def __init__(
         self,
-        image_path: str,
         impulse_vector: ImpulseVector,
         x: float,
         y: float,
@@ -24,7 +25,7 @@ class Bird(arcade.Sprite):
         friction: float = 1,
         collision_layer: int = 0,
     ):
-        super().__init__(image_path, 1)
+        super().__init__(self.IMAGE, 1)
         # body
         moment = pymunk.moment_for_circle(mass, 0, radius)
         body = pymunk.Body(mass, moment)
@@ -52,6 +53,13 @@ class Bird(arcade.Sprite):
         self.center_x = self.shape.body.position.x
         self.center_y = self.shape.body.position.y
         self.radians = self.shape.body.angle
+    
+    def activate_ability(self):
+        """
+        Base bird has no ability.
+        Subclasses override this.
+        """
+        pass
 
 
 class Pig(arcade.Sprite):
@@ -142,12 +150,15 @@ class YellowBird(Bird):
     ### ---------------------- ###
     ### SU IMPLEMENTACION AQUI ###
     ### ---------------------- ###
+    IMAGE = "assets/img/yellow.png"
 
     def __init__(self, impulse_vector: ImpulseVector, x: float, y: float, space: pymunk.Space):
-        super().__init__("assets/img/yellow.png", impulse_vector, x, y, space)
+        super().__init__(impulse_vector, x, y, space)
         self.boosted = False
 
-    def boost(self, power_multiplier=2):
+    def activate_ability(self, power_multiplier=2):
+        if self.boosted:
+            return
         if not self.boosted:
             velocity = self.body.velocity
             speed = velocity.length
@@ -177,6 +188,8 @@ class BlueBird(Bird):
     ### ---------------------- ###
     ### SU IMPLEMENTACION AQUI ###
     ### ---------------------- ###
+    IMAGE = "assets/img/blue.png"
+
     def __init__(self, impulse_vector: ImpulseVector, x: float, y: float, space: pymunk.Space):
         super().__init__("assets/img/blue.png", impulse_vector, x, y, space)
         self.divided = False
