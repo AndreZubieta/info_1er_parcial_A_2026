@@ -196,6 +196,4 @@ class BlueBird(Bird):
                 self.divided = True
                 return new_birds
         return []
-
-
     pass
