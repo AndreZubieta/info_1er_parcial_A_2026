@@ -177,4 +177,25 @@ class BlueBird(Bird):
     ### ---------------------- ###
     ### SU IMPLEMENTACION AQUI ###
     ### ---------------------- ###
+    def __init__(self, impulse_vector: ImpulseVector, x: float, y: float, space: pymunk.Space):
+        super().__init__("assets/img/blue.png", impulse_vector, x, y, space)
+        self.divided = False
+    
+    def divide(self):
+        if not self.divided:
+            velocity = self.body.velocity
+            speed = velocity.length
+            if speed > 0:
+                angle = math.atan2(velocity.y, velocity.x)
+                angles = [angle, angle + math.radians(30), angle - math.radians(30)]
+                new_birds = []
+                for a in angles:
+                    impulse_vector = ImpulseVector(angle=a, impulse=speed)
+                    new_bird = BlueBird(impulse_vector, self.center_x, self.center_y, self.body.space)
+                    new_birds.append(new_bird)
+                self.divided = True
+                return new_birds
+        return []
+
+
     pass
