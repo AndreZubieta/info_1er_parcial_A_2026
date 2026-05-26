@@ -5,6 +5,7 @@ import pymunk
 
 from game_object import Bird, Column, Pig
 from game_logic import get_impulse_vector, Point2D, get_distance
+from level_manager import LevelManager
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("arcade").setLevel(logging.WARNING)
@@ -40,8 +41,9 @@ class App(arcade.View):
         self.sprites = arcade.SpriteList()
         self.birds = arcade.SpriteList()
         self.world = arcade.SpriteList()
-        self.add_columns()
-        self.add_pigs()
+
+        self.level_manager = LevelManager(self)
+        self.level_manager.load_level(0)
 
         self.start_point = Point2D()
         self.end_point = Point2D()
@@ -66,17 +68,6 @@ class App(arcade.View):
                     self.space.remove(obj.shape, obj.body)
 
         return True
-
-    def add_columns(self):
-        for x in range(WIDTH // 2, WIDTH, 400):
-            column = Column(x, 50, self.space)
-            self.sprites.append(column)
-            self.world.append(column)
-
-    def add_pigs(self):
-        pig1 = Pig(WIDTH / 2, 100, self.space)
-        self.sprites.append(pig1)
-        self.world.append(pig1)
 
     def on_update(self, delta_time: float):
         self.space.step(1 / 60.0)  # actualiza la simulacion de las fisicas
@@ -136,6 +127,7 @@ class App(arcade.View):
                 for bird in result:
                     self.sprites.append(bird)
                     self.birds.append(bird)
+                    self.world.append(bird)
 
             return
 
@@ -148,17 +140,25 @@ class App(arcade.View):
             self.end_point
         )
 
-        bird = Bird(
+        bird_type = self.level_manager.app.active_bird_type
+
+        if bird_type is None:
+            return  # no birds left
+
+        bird = self.level_manager.create_bird(
+            bird_type,
             impulse_vector,
-            self.start_point.x,   # IMPORTANT FIX
-            self.start_point.y,
-            self.space,
+            self.start_point.x,
+            self.start_point.y
         )
 
         self.sprites.append(bird)
         self.birds.append(bird)
+        self.world.append(bird)
 
         self.active_bird = bird
+
+        self.level_manager.consume_next_bird()
 
     def on_draw(self):
         self.clear()

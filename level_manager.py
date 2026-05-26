@@ -2,26 +2,12 @@ import pymunk
 
 from game_object import Bird, Pig, Column, YellowBird, BlueBird
 from game_logic import ImpulseVector
+from levels.level_1 import LEVEL as LEVEL_1
 
 
-# -----------------------------
-# Example LEVELS (temporary)
-# Later you can move these into level_1.py, level_2.py, etc.
-# -----------------------------
-
-LEVEL_1 = {
-    "birds": ["red", "yellow", "blue"],
-    "pigs": [
-        {"x": 900, "y": 120},
-    ],
-    "columns": [
-        {"x": 700, "y": 50},
-        {"x": 1100, "y": 50},
-    ],
-}
-
-LEVELS = [LEVEL_1]
-
+LEVELS = [
+    LEVEL_1,
+]
 
 # -----------------------------
 # Level Manager
@@ -70,35 +56,20 @@ class LevelManager:
     # -------------------------
 
     def clear_level(self):
-        """
-        Removes all dynamic objects from:
-        - sprite lists
-        - pymunk space
-        """
 
-        # Remove sprites
-        self.app.sprites.clear()
-        self.app.birds.clear()
+        for obj in self.app.world:
+
+            # remove physics objects
+            if hasattr(obj, "body") and hasattr(obj, "shape"):
+                self.app.space.remove(obj.body, obj.shape)
+
+            # remove sprite
+            obj.remove_from_sprite_lists()
+
         self.app.world.clear()
+        self.app.birds.clear()
 
-        # Remove physics objects safely
-        # IMPORTANT: only remove what YOU added
-        for body in list(self.app.space.bodies):
-            if body.body_type != pymunk.Body.STATIC:
-                self.app.space.remove(body)
-
-        for shape in list(self.app.space.shapes):
-            try:
-                self.app.space.remove(shape)
-            except:
-                pass
-
-        # reset active bird
         self.app.active_bird = None
-
-    # -------------------------
-    # SPAWNING OBJECTS
-    # -------------------------
 
     def spawn_pigs(self, pigs_data):
         for p in pigs_data:
